@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Unzip newest project zip
-        run: unzip -qo "$(ls SmartHome-v*.zip | sort -V | tail -n 1)"
+      - name: Unzip project
+        run: unzip -q SmartHome-v5.zip
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
