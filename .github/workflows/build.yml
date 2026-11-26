@@ -1,5 +1,4 @@
 name: Build APK
-
 on:
   push:
   workflow_dispatch:
@@ -7,26 +6,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Unzip project
-        run: unzip -q SmartHome-v5.zip
-
+      - name: Unzip newest project zip
+        run: unzip -qo "$(ls SmartHome-v*.zip | sort -V | tail -n 1)"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
-
       - name: Build debug APK
         working-directory: SmartHome
         run: gradle assembleDebug --stacktrace
-
       - uses: actions/upload-artifact@v4
         with:
           name: SmartHome-apk
