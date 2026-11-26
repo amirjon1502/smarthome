@@ -7,37 +7,39 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup JDK 17
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: "17"
 
-      - name: Setup Gradle
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
 
-      - name: Resolve project directory
-        id: project_dir
+      - name: Locate Android project root
+        id: locate
         run: |
-          if [ -f "settings.gradle.kts" ] || [ -f "settings.gradle" ]; then
-            echo "dir=." >> "$GITHUB_OUTPUT"
-          elif [ -f "SmartHome/settings.gradle.kts" ] || [ -f "SmartHome/settings.gradle" ]; then
-            echo "dir=SmartHome" >> "$GITHUB_OUTPUT"
-          else
-            echo "Could not find settings.gradle.kts or settings.gradle" >&2
+          GRADLE_FILE=$(find . -maxdepth 4 \( -name "settings.gradle.kts" -o -name "settings.gradle" \) | head -n 1)
+          if [ -z "$GRADLE_FILE" ]; then
+            echo "ERROR: Could not find settings.gradle.kts or settings.gradle in the repository." >&2
             exit 1
           fi
+          PROJECT_DIR=$(dirname "$GRADLE_FILE")
+          echo "dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
+          echo "Found project directory: $PROJECT_DIR"
 
-      - name: Build debug APK
-        working-directory: ${{ steps.project_dir.outputs.dir }}
+      - name: Build Debug APK
+        working-directory: ${{ steps.locate.outputs.dir }}
         run: |
-          if [ -x "./gradlew" ]; then
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
             ./gradlew assembleDebug --no-daemon --stacktrace
           else
             gradle assembleDebug --no-daemon --stacktrace
@@ -47,5 +49,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SmartHome-apk
-          path: ${{ steps.project_dir.outputs.dir }}/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ steps.locate.outputs.dir }}/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
