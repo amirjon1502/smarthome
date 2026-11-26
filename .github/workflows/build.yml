@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Unzip project
-        run: unzip -q SmartHome-v2.zip
+        run: unzip -q SmartHome-v4.zip
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
